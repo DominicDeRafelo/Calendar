@@ -38,6 +38,7 @@ public class ListFragment extends Fragment {
 
     public interface Callbacks {
         void getEventById(UUID id);
+        void openIndividualEvent(Event event);
     }
 
 
@@ -94,11 +95,6 @@ public class ListFragment extends Fragment {
         super.onCreate(savedInstanceState);
         date = DateUtils.useDateOrNow((Date)getArguments().getSerializable(ARG_DATE));
         onDateChange();
-        liveDataItems = CalendarRepository.get().getAllEvents();
-        liveDataItems.observe(this, (events) -> {
-            this.events = events;
-            list.setAdapter(new EventListAdapter());
-        });
         // TODO: maybe something related to the menu?
         setHasOptionsMenu(true);
 
@@ -136,6 +132,12 @@ public class ListFragment extends Fragment {
      */
     private void onDateChange() {
         // TODO
+        liveDataItems = CalendarRepository.get().getEventsOnDay(date);
+        liveDataItems.observe(this, (events) -> {
+            this.events = events;
+            list.setAdapter(new EventListAdapter());
+        });
+
     }
 
     // TODO: some code for (un)registering callbacks?
@@ -156,18 +158,17 @@ public class ListFragment extends Fragment {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if(item.getItemId() == R.id.new_event){
             Event event = new Event();
-            CalendarRepository.get().addEvent(event);
 
+            CalendarRepository.get().addEvent(event);
+            callbacks.openIndividualEvent(event);
             return true;
         } else{
             return super.onOptionsItemSelected(item);
         }
     }
+
+
     // TODO: some code for the recycler view?
-
-
-
-
     /**
      * Each item in the list (RecyclerView) uses this ViewHolder to be
      * displayed. The main purpose of a view holder is to cache the individual

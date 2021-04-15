@@ -9,6 +9,9 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+
+import java.util.UUID;
 
 /**
  * The fragment for a single event. It allows editing all of the details of the event, either with
@@ -33,6 +36,10 @@ public class EventFragment extends Fragment implements TextWatcher {
     // argument once loaded from database
     private Event event;
 
+    //The views
+    private TextView editEventName;
+    private TextView date;
+
     /**
      * Use this factory method to create a new instance of this fragment that
      * show the details for the given event.
@@ -54,6 +61,14 @@ public class EventFragment extends Fragment implements TextWatcher {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         // TODO: load the event and update the UI
+        if (getArguments() != null && getArguments().containsKey(ARG_EVENT_ID)) {
+            UUID id = (UUID)getArguments().getSerializable(ARG_EVENT_ID);
+            CalendarRepository.get().getEventById(id).observe(this, event -> {
+                this.event = event;
+                editEventName.setText(event.name);
+                date.setText(event.startTime.toString());
+            });
+        }
     }
 
     /**
@@ -66,6 +81,8 @@ public class EventFragment extends Fragment implements TextWatcher {
         View base = inflater.inflate(R.layout.fragment_event, container, false);
 
         // TODO
+        editEventName = base.findViewById(R.id.EditEventName);
+        date = base.findViewById(R.id.date);
 
         // Return the base view
         return base;
