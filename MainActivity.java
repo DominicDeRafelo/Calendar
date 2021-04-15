@@ -8,6 +8,7 @@ import androidx.fragment.app.FragmentTransaction;
 import android.os.Bundle;
 
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * The main (and only) activity for the application that hosts all of the fragments.
@@ -23,7 +24,7 @@ import java.util.Date;
  * NOTE: This Activity is the bare-bones, empty, Activity. Work will be definitely needed in
  * onCreate() along with implementing some callbacks.
  */
-public class MainActivity extends AppCompatActivity implements CalendarFragment.Callbacks {
+public class MainActivity extends AppCompatActivity implements CalendarFragment.Callbacks, ListFragment.Callbacks {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,16 +33,12 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
         if (currentFragment == null) {
             // If no fragment is displayed in fragment_container, add one with a transaction
             CalendarFragment fragment = CalendarFragment.newInstance();
+            ListFragment listFragment = ListFragment.newInstance();
             getSupportFragmentManager()
                     .beginTransaction()
                     .add(R.id.fragment_container, fragment)
+                    .add(R.id.fragment_container, listFragment)
                     .commit();
-
-//            ListFragment listFragment = ListFragment.newInstance();
-//            getSupportFragmentManager()
-//                    .beginTransaction()
-//                    .add(R.id.fragment_container, listFragment)
-//                    .commit();
         }
 
 
@@ -49,6 +46,11 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
 
     @Override
     public void onDayChanged(Date date) {
+
+    }
+
+    @Override
+    public void getEventById(UUID id) {
 
     }
 }
