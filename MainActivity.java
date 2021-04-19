@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
 
     @Override
     public void getEventById(UUID id) {
+
     }
 
     @Override

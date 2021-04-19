@@ -9,8 +9,11 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -18,7 +21,8 @@ import java.util.UUID;
  * text edit boxes (for the name and description) or popup windows (for the date, start time,
  * time and type). The event is not updated in the database until the user leaves this fragment.
  */
-public class EventFragment extends Fragment implements TextWatcher {
+public class EventFragment extends Fragment implements TextWatcher, DatePickerFragment.Callbacks, EventTypePickerFragment.Callbacks,
+        TimePickerFragment.Callbacks{
 
     // fragment initialization parameters
     private static final String ARG_EVENT_ID = "event_id";
@@ -39,6 +43,11 @@ public class EventFragment extends Fragment implements TextWatcher {
     //The views
     private TextView editEventName;
     private TextView date;
+    private EditText description;
+    private TextView startTime;
+    private TextView endTime;
+    private TextView until;
+    private ImageView typeView;
 
     /**
      * Use this factory method to create a new instance of this fragment that
@@ -65,8 +74,7 @@ public class EventFragment extends Fragment implements TextWatcher {
             UUID id = (UUID)getArguments().getSerializable(ARG_EVENT_ID);
             CalendarRepository.get().getEventById(id).observe(this, event -> {
                 this.event = event;
-                editEventName.setText(event.name);
-                date.setText(event.startTime.toString());
+                updateUI();
             });
         }
     }
@@ -83,19 +91,93 @@ public class EventFragment extends Fragment implements TextWatcher {
         // TODO
         editEventName = base.findViewById(R.id.EditEventName);
         date = base.findViewById(R.id.date);
+        this.typeView = base.findViewById(R.id.imageView);
+        startTime = base.findViewById(R.id.eventTime);
+        until = base.findViewById(R.id.at);
+        description = base.findViewById(R.id.description);
+        endTime = base.findViewById(R.id.endTime);
 
+
+        date.setOnClickListener(v -> {
+            DatePickerFragment fragment = DatePickerFragment.newInstance(event.startTime);
+            fragment.setTargetFragment(this, 0);
+            fragment.show(requireFragmentManager(), "DATE_DIALOG");
+        });
+
+        typeView.setOnClickListener(v -> {
+            EventTypePickerFragment fragment = EventTypePickerFragment.newInstance(event.type);
+            fragment.setTargetFragment(this, 0);
+            fragment.show(requireFragmentManager(), "TYPE_DIALOG");
+        });
+
+        startTime.setOnClickListener(v -> {
+            TimePickerFragment fragment = TimePickerFragment.newInstance(true, event.startTime);
+            fragment.setTargetFragment(this, 1);
+            fragment.show(requireFragmentManager(), "TIME_DIALOG");
+        });
         // Return the base view
         return base;
     }
 
     // TODO: save the event to the database at some point
+    public void onStop(){
+        super.onStop();
+        CalendarRepository.get().updateEvent(event);
+    }
 
     /** Updates the UI to match the event. */
     private void updateUI() {
         // TODO
+        this.typeView.setImageResource(this.event.type.iconResourceId);
+        this.editEventName.setText(this.event.name);
+        this.date.setText(DateUtils.toFullDateString(this.event.startTime));
+        this.startTime.setText(DateUtils.toTimeString(this.event.startTime));
+        this.description.setText(this.description.getText());
+        if(this.event.endTime == null) {
+            this.until.setText(" ");
+            this.endTime.setText(" ");
+        }
+        else{
+            this.until.setText(R.string.until);
+            this.endTime.setText(DateUtils.toTimeString(this.event.endTime));
+        }
+
     }
 
     // TODO: maybe some helpful functions for showing dialogs and the callback functions
+    @Override
+    public void onDateSelected(Date date) {
+        Event event = this.event;
+        event.startTime = DateUtils.combineDateAndTime(date, event.startTime);
+        if (this.event.endTime != null) {
+            Event event2 = this.event;
+            event2.endTime = DateUtils.combineDateAndTime(date, event2.endTime);
+        }
+        updateUI();
+    }
+
+    @Override
+    public void onTypeSelected(EventType type) {
+        this.event.type = type;
+        updateUI();
+    }
+
+
+    @Override
+    public void onTimeSelected(boolean isStartTime, Date time) {
+        if (isStartTime) {
+            Date origStartTime = event.startTime;
+            event.startTime = DateUtils.combineDateAndTime(origStartTime, time);
+            if (event.endTime != null) {
+                Event event2 = event;
+                event2.endTime = DateUtils.getNewEndTime(origStartTime, event2.startTime, event.endTime);
+            }
+        } else {
+            Event event3 = event;
+            event3.endTime = DateUtils.fixEndTime(event3.startTime, time);
+        }
+        updateUI();
+    }
 
     /**
      * When an EditText updates we update the corresponding Event field. Need to register this
@@ -105,6 +187,10 @@ public class EventFragment extends Fragment implements TextWatcher {
     @Override
     public void afterTextChanged(Editable s) {
         // TODO
+        if(s==this.editEventName.getText())
+            this.event.name = s.toString();
+        else if (s == this.description.getText())
+            this.event.description = s.toString();
     }
 
     /** Required to be implemented but not needed. */
@@ -114,4 +200,6 @@ public class EventFragment extends Fragment implements TextWatcher {
     /** Required to be implemented but not needed. */
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+
 }

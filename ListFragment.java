@@ -15,6 +15,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.Date;
@@ -35,6 +36,8 @@ import java.util.UUID;
  * related to dates are dealt with in the CalendarFragment and use similar ideas here.
  */
 public class ListFragment extends Fragment {
+
+    private EventListAdapter adapter;
 
     public interface Callbacks {
         void getEventById(UUID id);
@@ -120,7 +123,9 @@ public class ListFragment extends Fragment {
         // Setup the recycler
         list = base.findViewById(R.id.list_view);
         list.setLayoutManager(new LinearLayoutManager(getContext()));
-
+        EventListAdapter eventListAdapter = new EventListAdapter();
+        this.adapter = eventListAdapter;
+        list.setAdapter(eventListAdapter);
 
         // return the base view
         return base;
@@ -158,11 +163,20 @@ public class ListFragment extends Fragment {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if(item.getItemId() == R.id.new_event){
             Event event = new Event();
-
+            event.startTime = this.date;
+            event.endTime = new Date(this.date.getTime() + 3600000);
             CalendarRepository.get().addEvent(event);
             callbacks.openIndividualEvent(event);
             return true;
-        } else{
+        } else if(item.getItemId() == R.id.new_assignment){
+            Event event = new Event();
+            event.startTime = this.date;
+            event.type = EventType.ASSIGNMENT;
+            CalendarRepository.get().addEvent(event);
+            callbacks.openIndividualEvent(event);
+            return true;
+        }
+        else{
             return super.onOptionsItemSelected(item);
         }
     }
@@ -176,12 +190,19 @@ public class ListFragment extends Fragment {
      */
     private class EventViewHolder extends RecyclerView.ViewHolder {
         Event event;
-        final View icon;
+        final ImageView icon;
         final TextView name;
+        TextView startTime;
+        TextView endTime;
+        TextView description;
+
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.eventTypeName);
-            icon = itemView.findViewById(R.id.eventTypeIcon);
+            icon = (ImageView) itemView.findViewById(R.id.eventTypeIcon);
+            description = itemView.findViewById(R.id.description);
+            startTime = itemView.findViewById(R.id.date);
+//            endTime = itemView.findViewById(R.id.endTime);
             itemView.setOnClickListener(v -> {
                 callbacks.getEventById(event.id);
             });
@@ -219,7 +240,9 @@ public class ListFragment extends Fragment {
             Event event = events.get(position);
             holder.event = event;
             holder.name.setText(event.name);
-//            TODO holder.icon.
+            holder.icon.setImageResource(event.type.iconResourceId);
+            holder.description.setText(event.description);
+            holder.startTime.setText(DateUtils.toFullDateString(event.startTime));
         }
 
         /**
@@ -227,7 +250,7 @@ public class ListFragment extends Fragment {
          */
         @Override
         public int getItemCount() {
-            return events.size();
+            return ListFragment.this.events.size();
         }
     }
     // TODO: some code for the swipe-to-delete?
