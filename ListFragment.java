@@ -9,12 +9,14 @@ import androidx.lifecycle.LiveData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -37,6 +39,7 @@ import java.util.UUID;
  */
 public class ListFragment extends Fragment {
 
+    private static final String TAG = "ListFragment";
     private EventListAdapter adapter;
 
     public interface Callbacks {
@@ -118,15 +121,12 @@ public class ListFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View base = inflater.inflate(R.layout.fragment_list, container, false);
-
-        // TODO
         // Setup the recycler
         list = base.findViewById(R.id.list_view);
         list.setLayoutManager(new LinearLayoutManager(getContext()));
         EventListAdapter eventListAdapter = new EventListAdapter();
-        this.adapter = eventListAdapter;
+        //this.adapter = eventListAdapter;
         list.setAdapter(eventListAdapter);
-
         // return the base view
         return base;
     }
@@ -140,7 +140,8 @@ public class ListFragment extends Fragment {
         liveDataItems = CalendarRepository.get().getEventsOnDay(date);
         liveDataItems.observe(this, (events) -> {
             this.events = events;
-            list.setAdapter(new EventListAdapter());
+            this.events.add(new Event());
+            list.getAdapter().notifyDataSetChanged();
         });
 
     }
@@ -191,26 +192,26 @@ public class ListFragment extends Fragment {
     private class EventViewHolder extends RecyclerView.ViewHolder {
         Event event;
         final ImageView icon;
-        final TextView name;
+        EditText name;
         TextView startTime;
         TextView endTime;
-        TextView description;
+        EditText description;
 
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
-            name = itemView.findViewById(R.id.eventTypeName);
-            icon = (ImageView) itemView.findViewById(R.id.eventTypeIcon);
-            description = itemView.findViewById(R.id.description);
-            startTime = itemView.findViewById(R.id.date);
-//            endTime = itemView.findViewById(R.id.endTime);
+            name = itemView.findViewById(R.id.eventName);
+            icon = (ImageView) itemView.findViewById(R.id.eventIcon);
+            description = itemView.findViewById(R.id.eventDescription);
+            startTime = itemView.findViewById(R.id.startTime);
+            endTime = itemView.findViewById(R.id.eventEndTime);
             itemView.setOnClickListener(v -> {
                 callbacks.getEventById(event.id);
             });
+
         }
     }
 
-
-
+    //TODO set listners for
 
     /**
      * The adapter for the items list to be displayed in a RecyclerView.
@@ -224,7 +225,7 @@ public class ListFragment extends Fragment {
         @NonNull
         @Override
         public EventViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.event_type_item, parent, false);
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_view, parent, false); //TODO: Replace with itemView
             return new EventViewHolder(v);
         }
 

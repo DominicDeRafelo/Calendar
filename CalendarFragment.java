@@ -75,9 +75,6 @@ public class CalendarFragment extends Fragment {
         View base = inflater.inflate(R.layout.fragment_calendar, container, false);
         CalendarView calendarView = base.findViewById(R.id.calendarView);
         calendarView.setDate(date.getTime()); //passes a long as the argument which is got through Date's getTime()
-        // TODO: Setup the calendar
-
-        // Return the base view
         return base;
     }
     /**
@@ -99,5 +96,5 @@ public class CalendarFragment extends Fragment {
         super.onDetach();
         callbacks = null;
     }
-    // TODO: get (and clear) the callbacks object as appropriate
+
 }

@@ -25,7 +25,6 @@ import java.util.UUID;
  * onCreate() along with implementing some callbacks.
  */
 public class MainActivity extends AppCompatActivity implements CalendarFragment.Callbacks, ListFragment.Callbacks {
-    ListFragment listFragment;
 
 
     @Override
@@ -36,7 +35,7 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
         if (currentFragment == null) {
             // If no fragment is displayed in fragment_container, add one with a transaction
             CalendarFragment fragment = CalendarFragment.newInstance();
-            listFragment = ListFragment.newInstance();
+            ListFragment listFragment = ListFragment.newInstance();
             getSupportFragmentManager()
                     .beginTransaction()
                     .add(R.id.fragment_container, fragment)
@@ -44,12 +43,11 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
                     .commit();
         }
 
-
     }
-
     @Override
     public void onDayChanged(Date date) {
-        listFragment.setDay(date);
+        ListFragment fragment = (ListFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+        fragment.setDay(date);
     }
 
     @Override

@@ -41,7 +41,7 @@ public class EventFragment extends Fragment implements TextWatcher, DatePickerFr
     private Event event;
 
     //The views
-    private TextView editEventName;
+    private EditText editEventName;
     private TextView date;
     private EditText description;
     private TextView startTime;
@@ -119,7 +119,6 @@ public class EventFragment extends Fragment implements TextWatcher, DatePickerFr
         return base;
     }
 
-    // TODO: save the event to the database at some point
     public void onStop(){
         super.onStop();
         CalendarRepository.get().updateEvent(event);
