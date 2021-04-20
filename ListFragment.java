@@ -21,7 +21,7 @@ import android.widget.TextView;
 import java.util.Date;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -37,7 +37,6 @@ import java.util.UUID;
  */
 public class ListFragment extends Fragment {
 
-    private EventListAdapter adapter;
 
     public interface Callbacks {
         void getEventById(UUID id);
@@ -53,7 +52,7 @@ public class ListFragment extends Fragment {
     private Date date;
     private List<Event> events = Collections.emptyList();
     private Callbacks callbacks;
-    private RecyclerView list;
+    private RecyclerView recyclerView;
     private LiveData<List<Event>> liveDataItems;
 
 
@@ -97,6 +96,11 @@ public class ListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         date = DateUtils.useDateOrNow((Date)getArguments().getSerializable(ARG_DATE));
+        liveDataItems = CalendarRepository.get().getEventsOnDay(date);
+        liveDataItems.observe(this, (events) -> {
+            this.events = events;
+            recyclerView.setAdapter(new EventListAdapter());
+        });
         onDateChange();
         // TODO: maybe something related to the menu?
         setHasOptionsMenu(true);
@@ -121,11 +125,9 @@ public class ListFragment extends Fragment {
 
         // TODO
         // Setup the recycler
-        list = base.findViewById(R.id.list_view);
-        list.setLayoutManager(new LinearLayoutManager(getContext()));
-        EventListAdapter eventListAdapter = new EventListAdapter();
-        this.adapter = eventListAdapter;
-        list.setAdapter(eventListAdapter);
+        recyclerView = base.findViewById(R.id.list_view);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(new EventListAdapter());
 
         // return the base view
         return base;
@@ -140,7 +142,7 @@ public class ListFragment extends Fragment {
         liveDataItems = CalendarRepository.get().getEventsOnDay(date);
         liveDataItems.observe(this, (events) -> {
             this.events = events;
-            list.setAdapter(new EventListAdapter());
+            Objects.requireNonNull(recyclerView.getAdapter()).notifyDataSetChanged();
         });
 
     }
@@ -199,12 +201,13 @@ public class ListFragment extends Fragment {
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.eventTypeName);
-            icon = (ImageView) itemView.findViewById(R.id.eventTypeIcon);
+            icon = itemView.findViewById(R.id.eventTypeIcon);
             description = itemView.findViewById(R.id.description);
-            startTime = itemView.findViewById(R.id.date);
-//            endTime = itemView.findViewById(R.id.endTime);
+            startTime = itemView.findViewById(R.id.startTime);
+            endTime = itemView.findViewById(R.id.endTimeEventView);
             itemView.setOnClickListener(v -> {
-                callbacks.getEventById(event.id);
+//                callbacks.getEventById(event.id);
+                callbacks.openIndividualEvent(event);
             });
         }
     }

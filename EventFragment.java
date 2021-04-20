@@ -41,7 +41,7 @@ public class EventFragment extends Fragment implements TextWatcher, DatePickerFr
     private Event event;
 
     //The views
-    private TextView editEventName;
+    private EditText editEventName;
     private TextView date;
     private EditText description;
     private TextView startTime;
@@ -89,31 +89,37 @@ public class EventFragment extends Fragment implements TextWatcher, DatePickerFr
         View base = inflater.inflate(R.layout.fragment_event, container, false);
 
         // TODO
+        typeView = base.findViewById(R.id.imageView);
         editEventName = base.findViewById(R.id.EditEventName);
         date = base.findViewById(R.id.date);
-        this.typeView = base.findViewById(R.id.imageView);
         startTime = base.findViewById(R.id.eventTime);
-        until = base.findViewById(R.id.at);
-        description = base.findViewById(R.id.description);
+        until = base.findViewById(R.id.until);
         endTime = base.findViewById(R.id.endTime);
+        description = base.findViewById(R.id.description);
 
 
         date.setOnClickListener(v -> {
             DatePickerFragment fragment = DatePickerFragment.newInstance(event.startTime);
-            fragment.setTargetFragment(this, 0);
-            fragment.show(requireFragmentManager(), "DATE_DIALOG");
+            fragment.setTargetFragment(this, REQUEST_DATE);
+            fragment.show(requireFragmentManager(), DIALOG_DATE);
         });
 
         typeView.setOnClickListener(v -> {
             EventTypePickerFragment fragment = EventTypePickerFragment.newInstance(event.type);
-            fragment.setTargetFragment(this, 0);
-            fragment.show(requireFragmentManager(), "TYPE_DIALOG");
+            fragment.setTargetFragment(this, REQUEST_EVENT_TYPE);
+            fragment.show(requireFragmentManager(), DIALOG_EVENT_TYPE);
         });
 
         startTime.setOnClickListener(v -> {
             TimePickerFragment fragment = TimePickerFragment.newInstance(true, event.startTime);
-            fragment.setTargetFragment(this, 1);
-            fragment.show(requireFragmentManager(), "TIME_DIALOG");
+            fragment.setTargetFragment(this, REQUEST_TIME);
+            fragment.show(requireFragmentManager(), DIALOG_TIME);
+        });
+
+        endTime.setOnClickListener(v -> {
+            TimePickerFragment fragment = TimePickerFragment.newInstance(false, event.endTime);
+            fragment.setTargetFragment(this, REQUEST_TIME);
+            fragment.show(requireFragmentManager(), DIALOG_TIME);
         });
         // Return the base view
         return base;
@@ -147,7 +153,6 @@ public class EventFragment extends Fragment implements TextWatcher, DatePickerFr
     // TODO: maybe some helpful functions for showing dialogs and the callback functions
     @Override
     public void onDateSelected(Date date) {
-        Event event = this.event;
         event.startTime = DateUtils.combineDateAndTime(date, event.startTime);
         if (this.event.endTime != null) {
             Event event2 = this.event;
@@ -166,11 +171,10 @@ public class EventFragment extends Fragment implements TextWatcher, DatePickerFr
     @Override
     public void onTimeSelected(boolean isStartTime, Date time) {
         if (isStartTime) {
-            Date origStartTime = event.startTime;
-            event.startTime = DateUtils.combineDateAndTime(origStartTime, time);
+            event.startTime = DateUtils.combineDateAndTime(event.startTime, time);
             if (event.endTime != null) {
                 Event event2 = event;
-                event2.endTime = DateUtils.getNewEndTime(origStartTime, event2.startTime, event.endTime);
+                event2.endTime = DateUtils.getNewEndTime(event.startTime, event2.startTime, event.endTime);
             }
         } else {
             Event event3 = event;
