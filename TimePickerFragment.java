@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
+import android.widget.DatePicker;
 import android.widget.TimePicker;
 
 import androidx.annotation.NonNull;
@@ -26,9 +27,10 @@ public class TimePickerFragment extends DialogFragment implements TimePickerDial
     /** The name of the argument for the time (a Date object) */
     private static final String ARG_TIME = "time";
 
+
     @Override
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-
+        ((TimePickerFragment.Callbacks)getTargetFragment()).onTimeSelected(getArguments().getBoolean(ARG_IS_START_TIME), DateUtils.getTime(hourOfDay,minute));
     }
 
 
@@ -63,6 +65,8 @@ public class TimePickerFragment extends DialogFragment implements TimePickerDial
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Date date = DateUtils.useDateOrNow((Date)getArguments().getSerializable(ARG_TIME));
         int[] hourMinute = DateUtils.getHourMinute(date);
-        return new TimePickerDialog(requireContext(), this, hourMinute[0], hourMinute[1], true);
+        return new TimePickerDialog(requireContext(), this, hourMinute[0], hourMinute[1], false);
     }
+
+
 }

@@ -8,6 +8,7 @@ import androidx.fragment.app.FragmentTransaction;
 import android.os.Bundle;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -43,7 +44,9 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
                     .commit();
         }
 
+
     }
+
     @Override
     public void onDayChanged(Date date) {
         ListFragment fragment = (ListFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
@@ -52,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
 
     @Override
     public void getEventById(UUID id) {
+        ListFragment fragment = (ListFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
 
     }
 

@@ -9,21 +9,19 @@ import androidx.lifecycle.LiveData;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.Date;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -39,8 +37,6 @@ import java.util.UUID;
  */
 public class ListFragment extends Fragment {
 
-    private static final String TAG = "ListFragment";
-    private EventListAdapter adapter;
 
     public interface Callbacks {
         void getEventById(UUID id);
@@ -56,7 +52,7 @@ public class ListFragment extends Fragment {
     private Date date;
     private List<Event> events = Collections.emptyList();
     private Callbacks callbacks;
-    private RecyclerView list;
+    private RecyclerView recyclerView;
     private LiveData<List<Event>> liveDataItems;
 
 
@@ -100,6 +96,11 @@ public class ListFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         date = DateUtils.useDateOrNow((Date)getArguments().getSerializable(ARG_DATE));
+        liveDataItems = CalendarRepository.get().getEventsOnDay(date);
+        liveDataItems.observe(this, (events) -> {
+            this.events = events;
+            recyclerView.setAdapter(new EventListAdapter());
+        });
         onDateChange();
         // TODO: maybe something related to the menu?
         setHasOptionsMenu(true);
@@ -121,12 +122,13 @@ public class ListFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View base = inflater.inflate(R.layout.fragment_list, container, false);
+
+        // TODO
         // Setup the recycler
-        list = base.findViewById(R.id.list_view);
-        list.setLayoutManager(new LinearLayoutManager(getContext()));
-        EventListAdapter eventListAdapter = new EventListAdapter();
-        //this.adapter = eventListAdapter;
-        list.setAdapter(eventListAdapter);
+        recyclerView = base.findViewById(R.id.list_view);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(new EventListAdapter());
+
         // return the base view
         return base;
     }
@@ -140,9 +142,9 @@ public class ListFragment extends Fragment {
         liveDataItems = CalendarRepository.get().getEventsOnDay(date);
         liveDataItems.observe(this, (events) -> {
             this.events = events;
-            this.events.add(new Event());
-            list.getAdapter().notifyDataSetChanged();
+            recyclerView.getAdapter().notifyDataSetChanged();
         });
+        // update UI?
 
     }
 
@@ -191,27 +193,28 @@ public class ListFragment extends Fragment {
      */
     private class EventViewHolder extends RecyclerView.ViewHolder {
         Event event;
-        final ImageView icon;
-        EditText name;
+        ImageView icon;
+        TextView name;
         TextView startTime;
         TextView endTime;
-        EditText description;
+        TextView description;
 
         public EventViewHolder(@NonNull View itemView) {
             super(itemView);
-            name = itemView.findViewById(R.id.eventName);
-            icon = (ImageView) itemView.findViewById(R.id.eventIcon);
+            name = itemView.findViewById(R.id.EventName);
+            icon = itemView.findViewById(R.id.eventIcon);
             description = itemView.findViewById(R.id.eventDescription);
             startTime = itemView.findViewById(R.id.startTime);
             endTime = itemView.findViewById(R.id.eventEndTime);
             itemView.setOnClickListener(v -> {
                 callbacks.getEventById(event.id);
+                callbacks.openIndividualEvent(event);
             });
-
         }
     }
 
-    //TODO set listners for
+
+
 
     /**
      * The adapter for the items list to be displayed in a RecyclerView.
@@ -225,7 +228,7 @@ public class ListFragment extends Fragment {
         @NonNull
         @Override
         public EventViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_view, parent, false); //TODO: Replace with itemView
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_view, parent, false);
             return new EventViewHolder(v);
         }
 
@@ -243,7 +246,9 @@ public class ListFragment extends Fragment {
             holder.name.setText(event.name);
             holder.icon.setImageResource(event.type.iconResourceId);
             holder.description.setText(event.description);
-            holder.startTime.setText(DateUtils.toFullDateString(event.startTime));
+            holder.startTime.setText(DateUtils.toTimeString(event.startTime));
+            if(event.endTime != null)
+                holder.endTime.setText(DateUtils.toTimeString(event.endTime));
         }
 
         /**
