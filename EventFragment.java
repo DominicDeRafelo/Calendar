@@ -160,8 +160,7 @@ public class EventFragment extends Fragment implements TextWatcher, DatePickerFr
     public void onDateSelected(Date date) {
         event.startTime = DateUtils.combineDateAndTime(date, event.startTime);
         if (this.event.endTime != null) {
-            Event event2 = this.event;
-            event2.endTime = DateUtils.combineDateAndTime(date, event2.endTime);
+            event.endTime = DateUtils.combineDateAndTime(date, event.endTime);
         }
         updateUI();
     }

@@ -69,12 +69,19 @@ public class CalendarFragment extends Fragment {
                              Bundle savedInstanceState) {
         // The date to initially highlight
         Date date = DateUtils.useDateOrNow((Date) getArguments().getSerializable(ARG_DATE));
-        callbacks.onDayChanged(date);
 
         // Inflate the layout for this fragment
         View base = inflater.inflate(R.layout.fragment_calendar, container, false);
         CalendarView calendarView = base.findViewById(R.id.calendarView);
         calendarView.setDate(date.getTime()); //passes a long as the argument which is got through Date's getTime()
+        callbacks.onDayChanged(date);
+        calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+            @Override
+            public void onSelectedDayChange(CalendarView view, int year, int month, int dayOfMonth) {
+               callbacks.onDayChanged(DateUtils.getDate(year, month, dayOfMonth));
+
+            }
+        });
         // TODO: Setup the calendar
 
         // Return the base view

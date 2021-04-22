@@ -27,19 +27,21 @@ import java.util.UUID;
  */
 public class MainActivity extends AppCompatActivity implements CalendarFragment.Callbacks, ListFragment.Callbacks {
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+
         if (currentFragment == null) {
             // If no fragment is displayed in fragment_container, add one with a transaction
             CalendarFragment fragment = CalendarFragment.newInstance();
             ListFragment listFragment = ListFragment.newInstance();
+            DateFragment dateFragment = DateFragment.newInstance();
             getSupportFragmentManager()
                     .beginTransaction()
                     .add(R.id.fragment_container, fragment)
+                    //.add(R.id.fragment_container, dateFragment)
                     .add(R.id.fragment_container, listFragment)
                     .commit();
         }
@@ -51,6 +53,8 @@ public class MainActivity extends AppCompatActivity implements CalendarFragment.
     public void onDayChanged(Date date) {
         ListFragment fragment = (ListFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
         fragment.setDay(date);
+//        DateFragment dateFragment = (DateFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+//        dateFragment.setDate(date);
     }
 
     @Override
